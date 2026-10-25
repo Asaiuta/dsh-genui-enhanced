@@ -27,6 +27,13 @@ pnpm exec tsdown      # 产出 lib/（client.js、index.js、assets/*）
 
 TypeScript 钉 5.9.3、@types/react-dom 钉 18.3.7（`^5.6.0` / `^18.0.0` 在本机 pnpm 下会解析到范围下限，编译不过）。`pnpm run build` 因 pnpm 11 的 deps 自检会连环触发内层 install 而失败，直接跑上面三条。
 
+## 同步上游
+
+- 远端：`upstream` = `github.com/omdsh-dev/dsh-genui`（已 fetch，含 tag）。**fork 快照源自 npm tarball，与上游 git 历史不同源（无 merge-base），永远不要 merge**——用 diff 对树、人工移植。
+- 基准：fork 基于发布版 `v0.14.0` tag。注意 npm 包只是 tag 树的 files 子集——tag 里还有 `scripts/`、`tests/`、`site/`、`vitest.config.ts` 等打包外内容，diff 时会出现大量 fork 侧「缺失」项，属预期，不移植。
+- 流程：`git fetch upstream --tags` → `git log v0.14.0..upstream/main --oneline` 看上游演进 → 对感兴趣的改动 `git diff v0.14.0..upstream/main -- <path>` 评估 → 人工移植进本 fork（保持既有 delta 不回退），过 tsc + tsdown + vitest 门禁后按 fork 惯例提交。
+- 上游 main 已越过 v0.14.0（sidechat 适配、i18n 修正、Computed 计算字段等）；移植前先 diff 确认与 fork delta 的冲突面。
+
 ## Tier 1 本机纪律
 
 SKILL.md 末尾三条（禁翻文件系统 / 紧凑 chart 组件优先 / 修改只重发变化围栏）已收编进本 fork，随包分发，不再怕重装冲掉。
