@@ -8,6 +8,7 @@ import { useEffect, useId, useRef, useState } from 'react'
 import css from '../GenuiBlock.module.css'
 import { GENUI_LIMITS } from '../genui-runtime/index.ts'
 import { useT } from '../i18n/index.ts'
+import { parseDecimalNumber } from '../safe-math.ts'
 import { resolveSubmitState } from '../submission-registry.ts'
 import type { RadioSubmissionMember } from '../submission-registry.ts'
 import type { AnswersState, GenuiBlockProps } from './state.ts'
@@ -87,17 +88,18 @@ export function SubmitNode({ node, onAction, answers }: {
   const recorded = answers?.answers ?? {}
   const multiRecorded = answers?.multiAnswers ?? {}
   const fields = answers?.fields ?? {}
+  const validFields = Object.fromEntries(Object.entries(fields).filter(([id]) => !answers?.invalidNumericFields.has(id)))
   const expected = node.groups
   // One shared notion of "filled fields" for answered/ready/payload: non-blank
   // values only, secrets (password inputs) never collected into submit.
   const filledFields = Object.fromEntries(
-    Object.entries(fields).filter(([id, v]) => v.trim() !== '' && !answers?.secretFields.has(id)),
+    Object.entries(validFields).filter(([id, v]) => v.trim() !== '' && !answers?.secretFields.has(id)),
   )
   const resolved = answers === undefined ? { scope: [], answered: 0, total: expected?.length ?? 0, localGradeEligible: false, hasOutOfScopePayload: false }
     : resolveSubmitState({
       registry: answers.registry,
       ...(expected === undefined ? {} : { groups: expected }),
-      state: { answers: recorded, multiAnswers: multiRecorded, fields, secretFields: answers.secretFields },
+      state: { answers: recorded, multiAnswers: multiRecorded, fields: validFields, secretFields: answers.secretFields },
     })
   const { scope, answered, total } = resolved
   const canSendAction = node.action !== undefined && onAction !== undefined
@@ -233,7 +235,7 @@ export function SliderNode({ node, onAction, answers }: {
 }) {
   const action = node.action
   const id = node.id
-  const restored = id !== undefined && answers?.fields[id] !== undefined
+  const restored = id !== undefined && answers?.fields !== undefined && Object.hasOwn(answers.fields, id)
     ? Number(answers!.fields[id]!)
     : NaN
   const initial = Number.isFinite(restored) ? restored : node.value ?? node.min ?? 0
@@ -268,7 +270,7 @@ export function SliderNode({ node, onAction, answers }: {
           send(v)
         }}
       />
-      <span className={css.sliderValue}>{Math.round(value * 100) / 100}</span>
+      <span className={css.sliderValue}>{value}</span>
     </label>
   )
 }
@@ -328,7 +330,7 @@ export function SelectNode({ node, onAction, answers }: {
   const action = node.action
   const id = node.id
   const options = node.options.slice(0, GENUI_LIMITS.maxOptions)
-  const restored = id !== undefined && answers?.fields[id] !== undefined
+  const restored = id !== undefined && answers?.fields !== undefined && Object.hasOwn(answers.fields, id)
     ? options.indexOf(answers!.fields[id]!)
     : -1
   const defaultValue = restored >= 0
@@ -385,10 +387,14 @@ export function InputNode({ node, onAction, answers }: {
   onAction?: GenuiBlockProps['onAction']
   answers?: AnswersState | undefined
 }) {
+  const t = useT()
   const action = node.action
   const id = node.id
   const secret = node.inputType === 'password'
-  const restored = !secret && id !== undefined ? answers?.fields[id] : undefined
+  const numeric = node.inputType === 'number'
+  const restored = !secret && id !== undefined && answers?.fields !== undefined && Object.hasOwn(answers.fields, id)
+    ? answers.fields[id]
+    : undefined
   // Initial value: durable state wins over the spec default. Secrets always
   // restore as blank so a password can never survive a refresh.
   const [value, setValue] = useState<string>(() => {
@@ -403,7 +409,14 @@ export function InputNode({ node, onAction, answers }: {
   // used to fire a pointless action round trip). Seeded with the mount value
   // so the very first unedited blur also stays silent.
   const lastSent = useRef<string | null>(value)
+  // fork: the native `type="number"` control (with min/max/step) stays — the
+  // upstream text+decimal rewrite is not adopted — but the draft-validity
+  // layer is kept: an unparseable draft never sends and never feeds Computed
+  // (GenuiBlock filters numericValues), and the alert explains why.
+  const setField = answers?.setField
+  const invalidDraft = numeric && value.trim() !== '' && parseDecimalNumber(value) === undefined
   const send = (submit: boolean): void => {
+    if (invalidDraft) return
     if (action !== undefined && onAction !== undefined) {
       lastSent.current = value
       onAction(action, { type: 'input', value, ...(id !== undefined ? { id } : {}), ...(submit ? { submit: true } : {}) })
@@ -411,20 +424,11 @@ export function InputNode({ node, onAction, answers }: {
   }
   const ime = useImeComposing()
   // Register the displayed initial value, including the native color default.
-  const mounted = useRef(false)
+  // renderNode keys inputs by field identity and type, so this value cannot
+  // be registered to a different field after streaming or tab navigation.
   useEffect(() => {
-    if (mounted.current) return
-    mounted.current = true
-    if (!secret && id !== undefined && value.trim() !== '') {
-      answers?.setField(id, value)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-  // Secret fields are filtered from persistence and submit collection.
-  useEffect(() => {
-    if (secret && id !== undefined) answers?.registerSecretField(id)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [secret, id])
+    if (!secret && id !== undefined && value.trim() !== '') setField?.(id, value)
+  }, [id, value, secret, setField])
   return (
     <label className={css.field}>
       {node.label !== undefined && <span>{renderInline(node.label, false)}</span>}
@@ -461,6 +465,7 @@ export function InputNode({ node, onAction, answers }: {
           send(true)
         }}
       />
+      {invalidDraft && <span role="alert">{t('block.invalidNumber')}</span>}
     </label>
   )
 }
@@ -477,7 +482,9 @@ export function TextareaNode({ node, onAction, answers }: {
   const action = node.action
   const id = node.id
   // Durable state wins over the spec default (same contract as InputNode).
-  const restored = id !== undefined ? answers?.fields[id] : undefined
+  const restored = id !== undefined && answers?.fields !== undefined && Object.hasOwn(answers.fields, id)
+    ? answers.fields[id]
+    : undefined
   const [value, setValue] = useState<string>(() => restored ?? node.value ?? '')
   // Last value delivered to the model: blur sends only on change. Seeded
   // with the mount value so an unedited blur stays silent.

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.14.0-fork.3] - 2026-10-25
+
+上游跟进轮：移植 v0.14.0 之后上游的 4 个提交（#353/#364/#357/#361），其中 Computed 按 0.15.0 修复线 `preserve computed form state` 的终态合入（main 上的版本有已知表单状态回归）。
+
+### 新增
+
+- **Computed（输入驱动计算）**：规格根部 `computed` 声明计算字段（白名单表达式，无 eval，拓扑排序 DAG + 环检测）；`{{fieldId}}` 模板插值仅作用于展示字段，`chart`/`echart` 数据点与 `table` 单元格用 `{"$computed":"id"}` 引用；输入（input/slider）变化纯本地重算，零模型往返；表格显示 `format` 格式化文字、排序/导出用原始数值。上游 main 版本的表单状态回归一并修复（numericValues 只收有效数值草稿，无效编辑不覆盖上次有效计算值）。
+- 表格单元格安全外链：文本/`badge`/`delta` 单元格、分组标题与明细首格支持 http(s)/mailto 外链；点链接不再同时触发折叠/展开。
+- `[genui-action]` 回传提示语本地化（此前两条路径硬编码中文，英文界面也收到中文用户消息）。
+- 新增 `src/client/chart-series.ts`：多系列图表按类别标签对齐的纯函数从 charts.tsx 抽出（fork 侧重构，使对齐逻辑可在 node 环境单测——charts.tsx 经 primitives 依赖宿主 CSS，无法在 node 导入）。
+
+### 变更
+
+- 多序列 chart/echart 数据点按类别标签对齐（同名类别跨系列合并，独有点保留）；无效计算值在图中留空位（null gap）：折线断线、柱留空轨、面积序列含空值时不闭合填充。
+- `number` 输入为 Computed 数值输入源：无效草稿不发送 action、不参与计算，无效时提交按钮禁用（fork.2 的原生 number 控件与 min/max/step 保留，上游 text+decimal 重写不采纳）。
+- 滑块读数保留 min/step 产生的任意精度（此前固定两位小数截断）。
+
+### 兼容性
+
+- 旧规格不受影响：`computed` 为可选根字段，无声明时渲染管线与 fork.2 逐字节同路。
+- 上游 sidechat（#360/#367）、gallery（#359）、DSH rc.3 适配（723bd44）本轮不移植，见 FORK.md 同步台账（fork.4 计划）。
+
 ## [0.14.0-fork.2] - 2026-10-25
 
 本 fork 的第一份条目。fork（pele 引擎替换与 SKILL 本机纪律收编）的既有 delta 见 `FORK.md`；自本轮起，fork 增强也在 CHANGELOG 记录，版本号以 `-fork.n` 递增。

@@ -91,7 +91,7 @@ Check CheckCircle Info InfoCircle Warning Error X Plus Minus Circle ArrowDown Ar
 **本地优先（v2.6）**：UI 自己能做的状态变化——判卷、判题、重置、展开、选中——一律本地即时完成，**零模型往返**。action 只用于必须模型参与的事（生成新内容、执行工具、下一步建议）。**交互组件必须带 action：不带 action 的按钮渲染为禁用态，用户点不了；带 action 的按钮点击后有「已触发」本地反馈。**
 - button: `{"type":"button","label":"...","tone":"primary|danger|success|ghost","full":true?,"small":true?,"icon":"emoji?","action":"refresh"?}`
 - **秘密禁令**：不得索取或生成密码、API Key、访问令牌、恢复码等秘密输入；遇到此类需求直接拒绝并解释
-- input: `{"type":"input","label":"...","placeholder":"...","inputType":"text|email|number|date|datetime-local|time|color","value":"...","action":"name"?,"id":"field-id"?}` — `color` 使用浏览器原生取色器，值使用 `#RRGGBB`；`number`/日期类走浏览器原生控件（数字键盘、日历/时间选择器），可加 `"min"`/`"max"`（number 用数值，date 用 `YYYY-MM-DD` 等原生格式）与 `"step"`；action 在失焦**和回车**时触发（回车带 `submit:true`）；**blur 仅值有变化才发送**（聚焦又离开不产生空往返）；payload 带 `id` 帮模型定位字段；带 `id` 的值刷新后保留、并被 submit 收集进 `fields`
+- input: `{"type":"input","label":"...","placeholder":"...","inputType":"text|email|number|date|datetime-local|time|color","value":"...","action":"name"?,"id":"field-id"?}` — `color` 使用浏览器原生取色器，值使用 `#RRGGBB`；`number`/日期类走浏览器原生控件（数字键盘、日历/时间选择器），可加 `"min"`/`"max"`（number 用数值，date 用 `YYYY-MM-DD` 等原生格式）与 `"step"`；`number` 是 Computed 的数值输入源；action 在失焦**和回车**时触发（回车带 `submit:true`）；**blur 仅值有变化才发送**（聚焦又离开不产生空往返）；payload 带 `id` 帮模型定位字段；带 `id` 的值刷新后保留、并被 submit 收集进 `fields`
 - select: `{"type":"select","label":"...","options":["...","..."],"selected":下标?,"action":"pick"?,"id":"field-id"?}` — `selected` 预选某选项（缺省显示「请选择…」占位，不静默预选第一项）；带 `id` 的选择跨刷新保留并进 submit 的 `fields`
 - checkbox: `{"type":"checkbox","label":"<user-language option>","checked":true?,"action":"toggle"?,"group":"group-id"?}` — 默认保持逐次 `action` 行为；**加 `group` 进入多选聚合模式**：同组 checkbox 可反复勾选/取消，变化只在本地记录、不发逐次 action，兄弟 `submit` 一次性把该组已选 label 作为字符串数组放进 `answers`（例如 `{"styles":["<user-language option>","<user-language option>"]}`）
 - slider: `{"type":"slider","label":"...","min":0,"max":100,"step":1,"value":n?,"action":"name"?,"id":"field-id"?}` — 数值表单滑块：实时显示数值；带 `id` 跨刷新保留并进 submit 的 `fields`（拖拽经防抖合并成一次 action）
@@ -169,7 +169,7 @@ Check CheckCircle Info InfoCircle Warning Error X Plus Minus Circle ArrowDown Ar
 | `[文字](https://…)` | 行内链接（http/https/mailto；围栏会话中的本地文件链接支持右侧栏打开与行号定位；无效目标及独立 HTML artifact 中的本地文件链接显示为普通文字） |
 | JSON `"\n"`（真实换行符） | 换行——**多段文字写同一个字段**，不要为换行拆成多个节点 |
 
-不嵌套、不解析 HTML（每个标记生成 React 元素，不走 innerHTML；`<br>` 字面显示，换行用 `"\n"`）；标记没闭合时原样显示。表格文本、`badge`、`delta` 单元格只识别本地文件链接，外部链接与无效目标显示为普通文字；`bar`、`spark`、`ring`、`index` 等专用数值单元格保持原有展示。
+不嵌套、不解析 HTML（每个标记生成 React 元素，不走 innerHTML；`<br>` 字面显示，换行用 `"\n"`）；标记没闭合时原样显示。表格文本、`badge`、`delta` 单元格、分组标题和明细首格支持现有 http/https/mailto 外链与本地文件链接，可直接用于日报的来源列；无效目标仍显示为普通文字。点击链接不会同时折叠分组或展开明细。表头不解析链接，`bar`、`spark`、`ring`、`index` 等专用数值单元格保持原有展示。
 
 文字字段只支持行内富文本。`text.content`、`callout.content`、`list` 项、`keyvalue` 值、`table` 单元格等字段中不要嵌入 Markdown 表格或连续三个及以上反引号、波浪号组成的代码围栏；表格使用 `table`，代码使用 `code`，代码改动使用 `diff`，结构化 JSON 使用 `json`。误写入文字字段的代码围栏连同内部标记保持原文，未闭合时从围栏标记开始保持原文。`validate_dsh_ui` 返回 `warning=block_markdown` 时，按照 `replacement` 改写结构节点并重新验证。
 
@@ -342,6 +342,15 @@ Check CheckCircle Info InfoCircle Warning Error X Plus Minus Circle ArrowDown Ar
 ```
 
 何时不用：单一知识点用单个 `radio`（自带本地判卷）或 `quiz` 组件，不需要 submit 组卷；题目多于 5 个拆成多条回答分批发。
+
+### Computed（输入驱动计算）
+在规格根部用 `computed` 声明有序无关的计算字段。表达式只支持数字、字段 ID、括号、`+ - * / % ^` 和 `sin cos tan asin acos atan sqrt cbrt exp log ln abs floor ceil round min max pow` 白名单函数，以及 `pi/e/tau` 常量；不执行 JavaScript。字段 ID 以字母或下划线开头，后续可含数字，最多 64 个字符。表达式最多 512 个字符、嵌套最多 32 层、每份规格最多 50 个计算字段；未声明字段、循环依赖和无效数值会显示为无效输入，图表会跳过无效点。
+
+`{{fieldId}}` 只用于允许插值的展示字段，例如规格标题、文本和统计卡片文字；代码、SVG、Mermaid 源码及 JSON 等原始数据保留原文，未知展示字段会在校验时报告。输入字段与计算字段重名时，该字段及依赖它的计算字段均显示为无效输入。`chart`、`echart` 的数据点和 `table` 单元格使用 `{"$computed":"fieldId"}` 引用数值。完整 ECharts `option` 中的数据值也可使用该引用。`format` 可设置 `locale`、`style`（`decimal|currency|percent`）、`currency` 和小数位范围。表格显示格式化文字，排序使用原始数值。`number` 输入接受带正负号的小数及科学计数法十进制值；十六进制、二进制和八进制写法无效。暂时无法解析的编辑内容保留在输入框中，不会覆盖上一次有效计算值；必填字段处于无效编辑状态时，提交按钮会禁用并显示提示。
+
+```dsh-ui
+{"computed":[{"id":"annual","expr":"monthly*12","format":{"locale":"zh-CN","style":"currency","currency":"CNY","maximumFractionDigits":0}},{"id":"tax","expr":"annual*rate","format":{"locale":"zh-CN","style":"currency","currency":"CNY","maximumFractionDigits":0}}],"items":[{"type":"input","id":"monthly","label":"月收入","inputType":"number","value":"10000"},{"type":"input","id":"rate","label":"税率","inputType":"number","value":"0.1"},{"type":"stat","label":"年度收入","value":"{{annual}}"},{"type":"stat","label":"预估税额","value":"{{tax}}"},{"type":"chart","kind":"bars","data":[{"label":"收入","value":{"$computed":"annual"}},{"label":"税额","value":{"$computed":"tax"}}]},{"type":"table","columns":["项目","金额"],"rows":[["年度收入",{"$computed":"annual"}],["预估税额",{"$computed":"tax"}]]}]}
+```
 
 ## 使用规则
 

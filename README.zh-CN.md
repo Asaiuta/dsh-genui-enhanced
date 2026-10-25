@@ -34,7 +34,7 @@
 例如当你询问「这个月订单表现如何？」，模型给出的回答不再只是一串文字，而是边打字边在正文中展开一张**可排序的数据面板**、一段**内嵌音视频**、一个**可拖拽调参的函数图像**、一组**即时判卷的测验**，或是一个**常驻的会话工作区**——文本与 UI 和谐共存，浑然一体。
 
 > [!IMPORTANT]
-> **本仓库是 `@changfenhuang/dsh-genui` 0.14.0 的本地 fork**（包名保持不变，可原位替换上游），版本 `0.14.0-fork.2`。相对上游：图示引擎替换为 **pele**（1.02 MB，较 mermaid −70%，CSS 变量实时跟主题，白名单加 mindmap/timeline），并新增能力——`chart` 的 `kind:"area"`、`input` 原生 `date`/`datetime-local`/`time`/`number` 类型与 `min`/`max`/`step` 约束、`table` 自动分页（`pageSize`，行上限提至 200）。完整记录见 [FORK.md](./FORK.md) 与 CHANGELOG。
+> **本仓库是 `@changfenhuang/dsh-genui` 0.14.0 的本地 fork**（包名保持不变，可原位替换上游），版本 `0.14.0-fork.3`。相对上游：图示引擎替换为 **pele**（1.02 MB，较 mermaid −70%，CSS 变量实时跟主题，白名单加 mindmap/timeline），并新增能力——`chart` 的 `kind:"area"`、`input` 原生 `date`/`datetime-local`/`time`/`number` 类型与 `min`/`max`/`step` 约束、`table` 自动分页（`pageSize`，行上限提至 200），以及上游 **Computed 计算字段**（输入驱动的本地响应式重算，取自上游 0.15.0 修复线）。完整记录见 [FORK.md](./FORK.md) 与 CHANGELOG。
 
 ---
 

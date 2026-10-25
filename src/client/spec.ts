@@ -88,8 +88,38 @@ export interface GenuiSpec {
    * Applies only when the fence body is fully complete, so a streaming
    * partial parse never double-merges. */
   append?: boolean
+  /** 根据输入字段及其他 Computed 字段计算的公式列表。 */
+  computed?: GenuiComputed[]
   /** Root component list. */
   items: GenuiNode[]
+}
+
+export interface GenuiComputedFormat {
+  locale?: string
+  style?: 'decimal' | 'currency' | 'percent'
+  currency?: string
+  minimumFractionDigits?: number
+  maximumFractionDigits?: number
+}
+
+export interface GenuiComputed {
+  id: string
+  expr: string
+  format?: GenuiComputedFormat
+}
+
+/** 数值组件数据中的 Computed 字段引用。 */
+export interface GenuiComputedRef {
+  $computed: string
+}
+
+/** 仅用于渲染阶段的表格值，排序读取原始数值，显示读取格式化文字。 */
+export const GENUI_COMPUTED_CELL = Symbol('dsh-genui-computed-cell')
+
+export interface GenuiComputedCell {
+  [GENUI_COMPUTED_CELL]: true
+  value: number
+  formatted: string
 }
 
 /* ---------------- leaf nodes ---------------- */
@@ -160,7 +190,11 @@ export interface GenuiSelect {
   id?: string
 }
 
+/** Runtime identity for a checkbox whose display label has been computed. */
+export const GENUI_CHECKBOX_VALUE = Symbol('dsh-genui-checkbox-value')
+
 export interface GenuiCheckbox {
+  [GENUI_CHECKBOX_VALUE]?: string
   type: 'checkbox'
   label: string
   checked?: boolean
@@ -417,7 +451,7 @@ export interface GenuiList {
 export interface GenuiTable {
   type: 'table'
   columns: string[]
-  rows: Array<Array<string | number>>
+  rows: Array<Array<string | number | GenuiComputedRef | GenuiComputedCell>>
   /** Per-column cell type; missing = auto (numeric right-align, signed delta). */
   types?: TableCellType[]
   /** Append a 合计 footer row (numeric columns are summed). */
@@ -451,7 +485,7 @@ export type TableCellType = 'text' | 'num' | 'delta' | 'bar' | 'badge' | 'spark'
 
 export interface GenuiChartDatum {
   label: string
-  value: number
+  value: number | GenuiComputedRef | null
   color?: string
 }
 

@@ -167,6 +167,7 @@ function listItemText(item: GenuiList['items'][number]): string {
 
 function boundField(answers: AnswersState | undefined, id: string | undefined): string | undefined {
   if (id === undefined) return undefined
+  if (answers?.fields === undefined || !Object.hasOwn(answers.fields, id)) return undefined
   const value = answers?.fields[id]
   return value === undefined || value === '' ? undefined : value
 }
@@ -288,8 +289,8 @@ export function renderNode(
         </ClickFeedbackButton>
       )
     }
-    case 'input': return <InputNode key={key} node={node} onAction={onAction} answers={answers} />
-    case 'select': return <SelectNode key={key} node={node} onAction={onAction} answers={answers} />
+    case 'input': return <InputNode key={JSON.stringify([path, node.id, node.inputType ?? 'text'])} node={node} onAction={onAction} answers={answers} />
+    case 'select': return <SelectNode key={JSON.stringify([path, node.id])} node={node} onAction={onAction} answers={answers} />
     case 'checkbox': return <CheckboxNode key={key} node={node} onAction={onAction} answers={answers} />
     case 'link': {
       const target = classifyLinkTarget(node.href)
@@ -505,7 +506,7 @@ export function renderNode(
     case 'diff': return <DiffNode key={key} node={node} />
     case 'json': return <JsonNode key={key} node={node} />
     case 'code': return <CodeNode key={key} node={node} />
-    case 'radio': return <RadioNode key={`${key}:r${answers?.round ?? 0}`} node={node} onAction={onAction} answers={answers} />
+    case 'radio': return <RadioNode key={JSON.stringify([path, node.group, answers?.round ?? 0])} node={node} onAction={onAction} answers={answers} />
     case 'submit': return <SubmitNode key={key} node={node} onAction={onAction} answers={answers} />
     case 'switch': return <SwitchNode key={key} node={node} onAction={onAction} />
     case 'slider': return <SliderNode key={key} node={node} onAction={onAction} answers={answers} />

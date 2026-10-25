@@ -38,7 +38,8 @@ export interface GenuiBlockProps {
 
 /** Block-wide aggregation state. Grouped radios store one selected label in
  * `answers`; grouped checkboxes store a selected-label array in
- * `multiAnswers`. Keeping the registries separate preserves the existing
+ * `multiAnswers` (source templates stay stable as display labels change).
+ * Keeping the registries separate preserves the existing
  * radio/local-grading string contract while allowing submit to expose one
  * unified `answers` payload (`string | string[]`). */
 export interface AnswersState {
@@ -51,6 +52,8 @@ export interface AnswersState {
   fields: Record<string, string>
   /** Field ids whose value must never be persisted or collected (secrets). */
   secretFields: ReadonlySet<string>
+  /** Numeric fields whose visible draft is not a valid decimal value. */
+  invalidNumericFields: ReadonlySet<string>
   registry: SubmissionRegistry
   /** True after a local grading: questions are locked until 重新作答. */
   locked: boolean
@@ -59,7 +62,6 @@ export interface AnswersState {
   setAnswer: (group: string, choice: string) => void
   setMultiAnswer: (group: string, choice: string, checked: boolean) => void
   setField: (id: string, value: string) => void
-  registerSecretField: (id: string) => void
   clear: () => void
   setLocked: (locked: boolean) => void
 }

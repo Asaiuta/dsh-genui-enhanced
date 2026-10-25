@@ -295,6 +295,7 @@ export const ZH: Record<keyof typeof EN, string> = {
   'block.table.pageInfo': '第 {page} / {pages} 页 · 共 {count} 行',
   'block.table.prevPage': '上一页',
   'block.table.nextPage': '下一页',
+  'block.invalidNumber': '请输入有效的十进制数值',
   'block.filterMatch': '匹配 {shown} / {total} 项',
   'block.triggered': '✓ 已触发',
   'block.triggeredPlain': '已触发',
@@ -328,6 +329,11 @@ export const ZH: Record<keyof typeof EN, string> = {
   'block.chart.linePoints': '折线图，{count} 个点，范围 {min} 到 {max}',
   'block.chart.donutSummary': '环形图，{count} 项，合计 {total}',
   'block.chart.node': '节点',
+
+  // ------------------------------------------------------ action prompt
+  'action.inline': '[genui-action] {action}。用户刚刚在界面中触发了动作 "{action}"，请根据组件数据执行相应操作，并用 dsh-ui 输出更新后的界面。{payload}',
+  'action.panel': '[genui-action] {action}。用户刚刚在面板中触发了动作 "{action}"，请根据组件数据执行相应操作，只输出一个 panel:true 的 dsh-ui 围栏来更新面板，回复文本至多一行 10 字以内的确认（如"已刷新"），不要解释、不要普通围栏。{payload}',
+  'action.payload': ' 组件数据: {json}',
 
   // -------------------------------------------------------- error text
   'err.boundary.generic': '此界面',

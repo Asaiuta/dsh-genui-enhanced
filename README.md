@@ -34,7 +34,7 @@
 Ask “How are this month’s orders doing?”, and instead of plain text or raw code blocks, the response streams out an **interactive sortable data table**, **audio/video players**, **draggable function plots**, **self-grading quizzes**, or a **persistent workspace dock** — all embedded seamlessly within the conversation.
 
 > [!IMPORTANT]
-> **This repository is a local fork** of `@changfenhuang/dsh-genui` 0.14.0 (package name kept for drop-in compatibility), versioned `0.14.0-fork.2`. Delta over upstream: the diagram engine is **pele** instead of mermaid (1.02 MB, −70% asset weight, live CSS-variable theming, `mindmap`/`timeline` whitelisted), plus capability additions — `chart` `kind:"area"`, native `date` / `datetime-local` / `time` / `number` inputs with `min`/`max`/`step`, and automatic table pagination (`pageSize`, row cap raised to 200). See [FORK.md](./FORK.md) and the CHANGELOG for the full record.
+> **This repository is a local fork** of `@changfenhuang/dsh-genui` 0.14.0 (package name kept for drop-in compatibility), versioned `0.14.0-fork.3`. Delta over upstream: the diagram engine is **pele** instead of mermaid (1.02 MB, −70% asset weight, live CSS-variable theming, `mindmap`/`timeline` whitelisted), plus capability additions — `chart` `kind:"area"`, native `date` / `datetime-local` / `time` / `number` inputs with `min`/`max`/`step`, automatic table pagination (`pageSize`, row cap raised to 200), and upstream's **Computed fields** (input-driven local recalculation, ported from the 0.15.0 fix line). See [FORK.md](./FORK.md) and the CHANGELOG for the full record.
 
 ---
 

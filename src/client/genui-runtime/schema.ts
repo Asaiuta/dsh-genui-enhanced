@@ -157,9 +157,23 @@ const nodeFields = { type: 'string', span: 'number' } as const
 
 const chartDatumSchema = recordSchema(['label', 'value'], {
   label: 'string',
-  value: 'number',
+  value: 'unknown',
   color: 'string',
 })
+
+const computedFormatSchema = recordSchema([], {
+  locale: 'string',
+  style: 'string',
+  currency: 'string',
+  minimumFractionDigits: 'number',
+  maximumFractionDigits: 'number',
+}, {}, { style: ['decimal', 'currency', 'percent'] })
+
+const computedFieldSchema = recordSchema(['id', 'expr'], {
+  id: 'string',
+  expr: 'string',
+  format: 'object',
+}, { format: computedFormatSchema })
 
 const chartSeriesSchema = recordSchema(['label', 'data'], {
   label: 'string',
@@ -260,8 +274,9 @@ export const GENUI_SPEC_SCHEMA = schema(['items'], {
   gap: 'number',
   panel: 'boolean',
   append: 'boolean',
+  computed: 'array',
   items: 'nodes',
-})
+}, {}, { nested: { computed: computedFieldSchema } })
 
 /** Backwards-friendly short alias for the root specification schema. */
 export const SPEC_SCHEMA = GENUI_SPEC_SCHEMA

@@ -11,6 +11,7 @@
 2. **主题桥接**：pele 读 CSS 变量，SVG 根元素内联 `--pele-*` → `--dsw-alias-*` 的活 `var()` 映射（颜色随宿主换主题实时重排，mermaid-core 是 initialize 时冻结调色板）；字体/圆角按 mermaid-core 同样理由冻结（测量一致性）。fallback 值与 mermaid-core 相同。
 3. **白名单扩容**：`mindmap`、`timeline` 进入白名单（mermaid-core 曾排除，pele 支持良好）。白名单共 12 种：flowchart/graph/sequenceDiagram/classDiagram/stateDiagram/gantt/pie/erDiagram/journey/gitGraph/mindmap/timeline。
 4. **fork.2 能力增强**（0.14.0-fork.2，条目见 CHANGELOG）：`chart` 加 `area` kind（多序列常驻填充的面积趋势）；`input` 加 `date`/`datetime-local`/`time`/`number` 原生类型与 `min`/`max`/`step` 约束；`table` 加自动分页（>15 行本地翻页，`pageSize` 可覆盖，分组表豁免）并把 `maxTableRows` 提到 200；文档漂移修正（pele-core 注释、SKILL mermaid/diagram 条目）；新增 `tests/` 回归测试（vitest，`pnpm exec vitest run`）。
+5. **fork.3 上游跟进**（0.14.0-fork.3，条目见 CHANGELOG）：移植上游 v0.14.0 之后的 4 个提交——Computed 计算字段（**按 0.15.0 修复线 c5253fe 终态**，main 版本有已知回归）、表格安全外链、action 提示语本地化、滑块精度修复。融合决策：保留 fork.2 原生 number 控件 + 吸收上游草稿校验层；多系列对齐函数抽到 `src/client/chart-series.ts`（node 可测）。上游 sidechat/gallery/rc.3 适配未移植（fork.4 计划：gallery 两节点 + sidechat 核心 + vitest jsdom 配置与 React 测试搬运）。
 
 ## 已知限制（pele 本体，与上游无关）
 
