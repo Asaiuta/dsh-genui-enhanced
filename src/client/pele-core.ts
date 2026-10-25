@@ -145,5 +145,14 @@ export async function renderMermaid(code: string, target?: HTMLElement): Promise
     }
   }
   assertSafeSvg(svg)
-  return svg.replace(/^<svg/i, `<svg style="${themeStyle(target)}"`)
+  // Merge the --pele-* bridge INTO pele's own root style attribute — pele's
+  // output already carries one (it defines the internal --_fg/--_s/… chain
+  // over --pele-* plus sizing). Inserting a second style attribute would be
+  // discarded by the HTML parser (duplicate attribute), silently dropping
+  // the --_* definitions and blacking out every fill.
+  const bridge = themeStyle(target)
+  if (/(^<svg[^>]*?style=")/.test(svg)) {
+    return svg.replace(/(^<svg[^>]*?style=")/, `$1${bridge};`)
+  }
+  return svg.replace(/^<svg/i, `<svg style="${bridge}"`)
 }
