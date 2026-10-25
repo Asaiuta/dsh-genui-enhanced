@@ -7,7 +7,8 @@
   Interactive, rich components rendered inline alongside the model's textual responses.
 </p>
 
-[![npm version](https://img.shields.io/npm/v/@changfenhuang/dsh-genui.svg?style=flat-square&color=3B82F6)](https://www.npmjs.com/package/@changfenhuang/dsh-genui)
+[![Version](https://img.shields.io/badge/version-0.14.0--fork.3-blue?style=flat-square)](./CHANGELOG.md)
+[![Upstream](https://img.shields.io/badge/upstream-dsh--genui_0.14.0-8A2BE2?style=flat-square)](https://github.com/omdsh-dev/dsh-genui)
 [![DSH Compatibility](https://img.shields.io/badge/DSH-^0.2.0--rc.1%20||%20^0.2.1--rc.1-10B981?style=flat-square)](https://github.com/omdsh-dev/dsh-genui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-amber.svg?style=flat-square)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -34,14 +35,14 @@
 Ask “How are this month’s orders doing?”, and instead of plain text or raw code blocks, the response streams out an **interactive sortable data table**, **audio/video players**, **draggable function plots**, **self-grading quizzes**, or a **persistent workspace dock** — all embedded seamlessly within the conversation.
 
 > [!IMPORTANT]
-> **This repository is a local fork** of `@changfenhuang/dsh-genui` 0.14.0 (package name kept for drop-in compatibility), versioned `0.14.0-fork.3`. Delta over upstream: the diagram engine is **pele** instead of mermaid (1.02 MB, −70% asset weight, live CSS-variable theming, `mindmap`/`timeline` whitelisted), plus capability additions — `chart` `kind:"area"`, native `date` / `datetime-local` / `time` / `number` inputs with `min`/`max`/`step`, automatic table pagination (`pageSize`, row cap raised to 200), and upstream's **Computed fields** (input-driven local recalculation, ported from the 0.15.0 fix line). See [FORK.md](./FORK.md) and the CHANGELOG for the full record.
+> **This repository is a fork** of `@changfenhuang/dsh-genui` 0.14.0 (package name kept for drop-in compatibility), versioned `0.14.0-fork.3`. Delta over upstream: the diagram engine is **pele** instead of mermaid (1.02 MB, −70% asset weight, live CSS-variable theming, `mindmap`/`timeline` whitelisted), plus capability additions — `chart` `kind:"area"`, native `date` / `datetime-local` / `time` / `number` inputs with `min`/`max`/`step`, automatic table pagination (`pageSize`, row cap raised to 200), and upstream's **Computed fields** (input-driven local recalculation, ported from the 0.15.0 fix line). See [FORK.md](./FORK.md) and the CHANGELOG for the full record. **This fork is not published to npm** — the Quick Start below separates the upstream npm install from building this fork from source.
 
 ---
 
 ## 🎬 Real Interface Showcase
 
 > [!NOTE]
-> **Real Interface Captures:** All recordings and screenshots below are captured directly from real DSH interface rendering — no conceptual mockups or faked pre-renders.
+> **Real Interface Captures:** All recordings and screenshots below are captured directly from real DSH interface rendering — no conceptual mockups or faked pre-renders. Demo media is inherited from the upstream repository: this fork carries the entire component surface shown here, with only the diagram engine swapped (pele instead of mermaid).
 
 ### 40-Second Walkthrough
 
@@ -86,7 +87,9 @@ Ensure your environment meets the following requirements:
 
 ### 2. Install & Activate
 
-Run a single command in your terminal (all dependencies are fetched automatically):
+Pick one path depending on what you want:
+
+**Option A — Upstream package from npm** (the stable marketplace version, *without* this fork's deltas — pele engine, `area` charts, table pagination, Computed fields, etc.):
 
 ```sh
 # Public npm package (works without an npm account)
@@ -95,6 +98,20 @@ dsh plugin --profile web add @changfenhuang/dsh-genui
 
 > [!TIP]
 > **Adding only as a Node package?** Run `npm install @changfenhuang/dsh-genui`. Note that `npm install` only adds the dependency and does not register the plugin with DSH; use the `dsh plugin add` command above for DSH integration.
+
+**Option B — This fork, built from source** (this repository; not on npm — `lib/` is not committed, so building is mandatory; details in [FORK.md](./FORK.md)):
+
+```sh
+git clone https://github.com/Asaiuta/dsh-genui-enhanced.git
+cd dsh-genui-enhanced
+pnpm install                                # approve esbuild's build script when prompted
+
+# Build gate (see FORK.md for pnpm 11 caveats)
+./node_modules/.bin/tsc -p tsconfig.json    # type check — zero errors required
+./node_modules/.bin/tsdown                  # emit lib/ (client.js, index.js, assets/*)
+
+dsh plugin --profile web add link:$PWD
+```
 
 ### 3. Verify in 60 Seconds
 
@@ -113,8 +130,8 @@ dsh plugin --profile web add @changfenhuang/dsh-genui
 > 
 > 1. **Watch the Package Scope (Crucial)**:
 >    The package must be **`@changfenhuang/dsh-genui`**. npm hosts an unrelated, unscoped package named `dsh-genui` (a Vue/OpenTiny implementation by another maintainer); installing it will fail due to incompatible host peer dependencies.
-> 2. **Do Not Use `link:` on a Freshly Cloned Directory**:
->    `link:` alone does not bundle or resolve peer assets (mermaid, three.js, React). Use npm for standard usage; reserve `link:` strictly for local development (see [Developer Guide](#-developer-guide)).
+> 2. **Do Not Use `link:` on a Directory That Has Not Been Built**:
+>    `link:` alone does not bundle or resolve peer assets (diagram engine, three.js, React). Run `pnpm install` plus the build gate first so `lib/` exists, then `link:` works — that is exactly Option B above. Use npm (Option A) for the standard marketplace install.
 > 3. **Migrating from Legacy `@omdsh-dev`**:
 >    If you installed from GitHub or the old org name before v0.9.2, clean up the stale key:
 >    ```sh
@@ -275,9 +292,9 @@ Completed GenUI blocks can be exported on demand:
 ### Local Development (Link Mode)
 
 ```sh
-git clone https://github.com/omdsh-dev/dsh-genui.git
-cd dsh-genui
-pnpm install
+git clone https://github.com/Asaiuta/dsh-genui-enhanced.git
+cd dsh-genui-enhanced
+pnpm install                                # approve esbuild's build script when prompted
 
 # Build and link into your DSH web profile
 dsh plugin --profile web add link:$PWD
@@ -286,24 +303,13 @@ dsh plugin --profile web add link:$PWD
 ### Useful Commands
 
 ```sh
-pnpm run check           # Type checks + full unit test suite + build
-pnpm run test            # Run Vitest unit tests
-pnpm run check:host-api dsh-v0.2.1-rc.2  # Check the current published DSH API
-node scripts/verify-pack.mjs --keep  # Verify and inspect npm tarball
+pnpm install                                # devDeps; approve esbuild's build script
+./node_modules/.bin/tsc -p tsconfig.json    # type gate — zero errors required
+./node_modules/.bin/tsdown                  # emit lib/ (client.js, index.js, assets/*)
+./node_modules/.bin/vitest run              # unit tests
 ```
 
-### End-to-End (E2E) Testing
-
-- **Visual E2E Smoke (No Model API Key Required)**:
-  ```sh
-  npx tsx scripts/e2e-visual.mts          # Boots headless Chrome, tests gallery rendering and asserts interactions
-  ```
-- **Real-Model Integration E2E**:
-  ```sh
-  export DSH_ROOT=/path/to/deepseek-harness-0.2.1-rc.2
-  export DSH_BIN="$DSH_ROOT/apps/cli/lib/bin.js"
-  DEEPSEEK_API_KEY=sk-... node scripts/e2e.mjs
-  ```
+> The upstream npm-script entry points (`pnpm run build` / `check`, the `scripts/*.mjs` helpers and the E2E harness) are not part of this fork's npm-tarball snapshot. The three commands above are the fork's build gates; see [FORK.md](./FORK.md) for pnpm 11 caveats (invoke the binaries directly rather than via `pnpm exec`/`pnpm run`).
 
 ### Advanced Profile Configurations
 
@@ -354,6 +360,7 @@ Heavier engines are lazy-loaded through plugin-provided static routes upon their
 dsh plugin --profile web remove @changfenhuang/dsh-genui
 dsh plugin --profile web add @changfenhuang/dsh-genui
 ```
+(Note: these npm commands reinstall the **upstream** package. To refresh an install of this fork, rebuild from source and re-link instead — see Quick Start Option B.)
 </details>
 
 <details>
@@ -364,7 +371,7 @@ This version strictly requires DSH `^0.2.0-rc.1 || ^0.2.1-rc.1`. Older host vers
 
 ---
 
-## 🗺️ Roadmap Evaluation
+## 🗺️ Roadmap Evaluation (Inherited from Upstream)
 
 | Exploration Area | Decision | Rationale |
 | :--- | :---: | :--- |
@@ -377,6 +384,7 @@ This version strictly requires DSH `^0.2.0-rc.1 || ^0.2.1-rc.1`. Older host vers
 
 ## 🔗 Links & Community
 
+- Upstream project: [omdsh-dev/dsh-genui](https://github.com/omdsh-dev/dsh-genui) — component gallery, demos and release notes live there.
 - [Linux.do Community Discussion](https://linux.do)
 - Visit the [Live Product Site](https://omdsh-dev.github.io/dsh-genui/) to explore more demos.
 
@@ -384,4 +392,4 @@ This version strictly requires DSH `^0.2.0-rc.1 || ^0.2.1-rc.1`. Older host vers
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE), as is the upstream project. Third-party notices: [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

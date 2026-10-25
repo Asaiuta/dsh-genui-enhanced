@@ -7,7 +7,8 @@
   文字回答依旧完整，富交互组件即刻上线。
 </p>
 
-[![npm version](https://img.shields.io/npm/v/@changfenhuang/dsh-genui.svg?style=flat-square&color=3B82F6)](https://www.npmjs.com/package/@changfenhuang/dsh-genui)
+[![Version](https://img.shields.io/badge/version-0.14.0--fork.3-blue?style=flat-square)](./CHANGELOG.md)
+[![Upstream](https://img.shields.io/badge/upstream-dsh--genui_0.14.0-8A2BE2?style=flat-square)](https://github.com/omdsh-dev/dsh-genui)
 [![DSH Compatibility](https://img.shields.io/badge/DSH-^0.2.0--rc.1%20||%20^0.2.1--rc.1-10B981?style=flat-square)](https://github.com/omdsh-dev/dsh-genui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-amber.svg?style=flat-square)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -34,14 +35,14 @@
 例如当你询问「这个月订单表现如何？」，模型给出的回答不再只是一串文字，而是边打字边在正文中展开一张**可排序的数据面板**、一段**内嵌音视频**、一个**可拖拽调参的函数图像**、一组**即时判卷的测验**，或是一个**常驻的会话工作区**——文本与 UI 和谐共存，浑然一体。
 
 > [!IMPORTANT]
-> **本仓库是 `@changfenhuang/dsh-genui` 0.14.0 的本地 fork**（包名保持不变，可原位替换上游），版本 `0.14.0-fork.3`。相对上游：图示引擎替换为 **pele**（1.02 MB，较 mermaid −70%，CSS 变量实时跟主题，白名单加 mindmap/timeline），并新增能力——`chart` 的 `kind:"area"`、`input` 原生 `date`/`datetime-local`/`time`/`number` 类型与 `min`/`max`/`step` 约束、`table` 自动分页（`pageSize`，行上限提至 200），以及上游 **Computed 计算字段**（输入驱动的本地响应式重算，取自上游 0.15.0 修复线）。完整记录见 [FORK.md](./FORK.md) 与 CHANGELOG。
+> **本仓库是 `@changfenhuang/dsh-genui` 0.14.0 的 fork**（包名保持不变，可原位替换上游），版本 `0.14.0-fork.3`。相对上游：图示引擎替换为 **pele**（1.02 MB，较 mermaid −70%，CSS 变量实时跟主题，白名单加 mindmap/timeline），并新增能力——`chart` 的 `kind:"area"`、`input` 原生 `date`/`datetime-local`/`time`/`number` 类型与 `min`/`max`/`step` 约束、`table` 自动分页（`pageSize`，行上限提至 200），以及上游 **Computed 计算字段**（输入驱动的本地响应式重算，取自上游 0.15.0 修复线）。完整记录见 [FORK.md](./FORK.md) 与 CHANGELOG。**本 fork 未发布到 npm**——下方「快速开始」区分了上游 npm 安装与本 fork 的源码构建安装。
 
 ---
 
 ## 🎬 真实界面预览
 
 > [!NOTE]
-> **真实截图与录屏：** 以下界面素材均直接截取自 DSH 真实对话环境中的渲染结果，无任何概念样机或预渲染伪造。
+> **真实截图与录屏：** 以下界面素材均直接截取自 DSH 真实对话环境中的渲染结果，无任何概念样机或预渲染伪造。演示素材沿用上游仓库——fork 完整继承这里展示的整套组件面，仅图示引擎不同（pele 替换 mermaid）。
 
 ### 40 秒完整体验
 
@@ -84,9 +85,11 @@ https://github.com/user-attachments/assets/f5db33ec-7471-4d4a-a85b-79c9962ab4ef
 - **DSH 版本**：`^0.2.0-rc.1 || ^0.2.1-rc.1`（已在 `dsh-v0.2.0-rc.1` 与 `dsh-v0.2.1-rc.2` 上深度验证）
 - **pnpm 处于 PATH 中**：`dsh plugin` 底层依赖 pnpm。如尚未安装，请执行 `corepack enable` 或 `npm i -g pnpm`，之后**重新打开终端**，确认 `pnpm -v` 可正常输出。
 
-### 2. 一键安装与激活
+### 2. 安装与激活
 
-在终端中执行以下命令（一键全自动拉取依赖）：
+按需求二选一：
+
+**方式 A —— npm 安装上游市场版**（稳定版本，*不含*本 fork 的增量：pele 引擎、`area` 图、表格自动分页、Computed 计算字段等）：
 
 ```sh
 # 安装并激活至 DSH web profile（公开包，无需登录 npm）
@@ -95,6 +98,20 @@ dsh plugin --profile web add @changfenhuang/dsh-genui
 
 > [!TIP]
 > **仅作为依赖引入？** 若仅作为 Node 项目依赖引入而不注入 DSH 宿主，执行 `npm install @changfenhuang/dsh-genui` 即可。
+
+**方式 B —— 源码构建本 fork**（即本仓库；未发布 npm——`lib/` 不入库，必须先构建；细节见 [FORK.md](./FORK.md)）：
+
+```sh
+git clone https://github.com/Asaiuta/dsh-genui-enhanced.git
+cd dsh-genui-enhanced
+pnpm install                                # 提示时放行 esbuild 的构建脚本
+
+# 构建门禁（pnpm 11 的坑见 FORK.md）
+./node_modules/.bin/tsc -p tsconfig.json    # 类型检查——要求零错误
+./node_modules/.bin/tsdown                  # 产出 lib/（client.js、index.js、assets/*）
+
+dsh plugin --profile web add link:$PWD
+```
 
 ### 3. 60 秒验证
 
@@ -113,8 +130,8 @@ dsh plugin --profile web add @changfenhuang/dsh-genui
 > 
 > 1. **认准包名 Scope（极为关键）**：
 >    必须安装 **`@changfenhuang/dsh-genui`**。npm 上存在一个同名但无 Scope 的 `dsh-genui`（由其他维护者基于 Vue/OpenTiny 开发，与本插件完全不兼容），如不慎安装会被 DSH 宿主因 peer 依赖冲突拒绝。
-> 2. **切勿使用 `link:` 安装刚 git clone 的目录**：
->    纯 `link:` 不会自动安装 Mermaid、Three.js、React 等对等依赖，导致前端渲染报错。日常使用请走 npm 安装；仅本地源码开发时才使用 link（见[开发者指南](#-开发者指南)）。
+> 2. **切勿对未构建的目录使用 `link:`**：
+>    纯 `link:` 不会自动安装图示引擎、Three.js、React 等对等依赖——先 `pnpm install` 并跑完构建门禁、确保 `lib/` 存在后再 link（即上文方式 B）。日常安装上游市场版请走 npm（方式 A）。
 > 3. **从旧包名 `@omdsh-dev` 迁移**：
 >    若在 v0.9.2 之前使用过 GitHub 源或旧组织名安装，请执行：
 >    ```sh
@@ -275,9 +292,9 @@ sequenceDiagram
 ### 本地开发联调（Link 模式）
 
 ```sh
-git clone https://github.com/omdsh-dev/dsh-genui.git
-cd dsh-genui
-pnpm install
+git clone https://github.com/Asaiuta/dsh-genui-enhanced.git
+cd dsh-genui-enhanced
+pnpm install                                # 提示时放行 esbuild 的构建脚本
 
 # 本地联调构建并软链至 DSH
 dsh plugin --profile web add link:$PWD
@@ -286,24 +303,13 @@ dsh plugin --profile web add link:$PWD
 ### 常用命令
 
 ```sh
-pnpm run check           # 类型检查 + 单元测试 + 构建
-pnpm run test            # 运行 Vitest 测试套件
-pnpm run check:host-api dsh-v0.2.1-rc.2  # 检查当前发布版 DSH 的公开接口
-node scripts/verify-pack.mjs --keep  # 生成并打包校验 tarball
+pnpm install                                # devDeps；放行 esbuild 的构建脚本
+./node_modules/.bin/tsc -p tsconfig.json    # 类型门禁——要求零错误
+./node_modules/.bin/tsdown                  # 产出 lib/（client.js、index.js、assets/*）
+./node_modules/.bin/vitest run              # 单元测试
 ```
 
-### 端到端 E2E 验证
-
-- **视觉回归 E2E（无需模型 API Key）**：
-  ```sh
-  npx tsx scripts/e2e-visual.mts          # 生成全量组件截图与交互验证断言
-  ```
-- **真机闭环 E2E（调用模型真实响应）**：
-  ```sh
-  export DSH_ROOT=/path/to/deepseek-harness-0.2.1-rc.2
-  export DSH_BIN="$DSH_ROOT/apps/cli/lib/bin.js"
-  DEEPSEEK_API_KEY=sk-... node scripts/e2e.mjs
-  ```
+> 上游的 npm-script 入口（`pnpm run build` / `check`、`scripts/*.mjs` 辅助脚本与 E2E 装置）不在本 fork 的 npm 快照内。以上三条即本 fork 的构建门禁；pnpm 11 的注意事项见 [FORK.md](./FORK.md)（直接调用二进制，不要经 `pnpm exec`/`pnpm run`）。
 
 ### 进阶配置项
 
@@ -350,6 +356,7 @@ DSH 的插件管理需要调用宿主系统的 `pnpm`。请在系统终端执行
 dsh plugin --profile web remove @changfenhuang/dsh-genui
 dsh plugin --profile web add @changfenhuang/dsh-genui
 ```
+（注：上述 npm 命令重装的是**上游**市场版；若要刷新本 fork 的安装，请重新构建并 link——见「快速开始」方式 B。）
 </details>
 
 <details>
@@ -360,7 +367,7 @@ dsh plugin --profile web add @changfenhuang/dsh-genui
 
 ---
 
-## 🗺️ 路线图评估 (Roadmap)
+## 🗺️ 路线图评估 (Roadmap，继承自上游)
 
 | 探索方向 | 评估结论 | 决策理由 |
 | :--- | :---: | :--- |
@@ -373,6 +380,7 @@ dsh plugin --profile web add @changfenhuang/dsh-genui
 
 ## 🔗 链接与致谢
 
+- 上游项目：[omdsh-dev/dsh-genui](https://github.com/omdsh-dev/dsh-genui)——组件画廊、演示与发布说明见上游仓库。
 - [Linux.do 社区讨论](https://linux.do)
 - 欢迎访问 [在线产品站](https://omdsh-dev.github.io/dsh-genui/) 体验更多特性
 
@@ -380,4 +388,4 @@ dsh plugin --profile web add @changfenhuang/dsh-genui
 
 ## 📄 开源许可
 
-本项目遵循 [MIT License](LICENSE) 开源协议。
+本项目与上游一样遵循 [MIT License](LICENSE) 开源协议；第三方声明见 [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md)。
