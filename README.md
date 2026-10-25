@@ -33,6 +33,9 @@
 
 Ask “How are this month’s orders doing?”, and instead of plain text or raw code blocks, the response streams out an **interactive sortable data table**, **audio/video players**, **draggable function plots**, **self-grading quizzes**, or a **persistent workspace dock** — all embedded seamlessly within the conversation.
 
+> [!IMPORTANT]
+> **This repository is a local fork** of `@changfenhuang/dsh-genui` 0.14.0 (package name kept for drop-in compatibility), versioned `0.14.0-fork.2`. Delta over upstream: the diagram engine is **pele** instead of mermaid (1.02 MB, −70% asset weight, live CSS-variable theming, `mindmap`/`timeline` whitelisted), plus capability additions — `chart` `kind:"area"`, native `date` / `datetime-local` / `time` / `number` inputs with `min`/`max`/`step`, and automatic table pagination (`pageSize`, row cap raised to 200). See [FORK.md](./FORK.md) and the CHANGELOG for the full record.
+
 ---
 
 ## 🎬 Real Interface Showcase
@@ -144,7 +147,8 @@ dsh-genui Capabilities
 - **Advanced Tables**:
   - Click headers to **sort locally** (ascending / descending / reset) with smart parsing for numbers, currency, commas, percentages, and `k/m/b` units;
   - Columns support inline progress bars (`bar`), rings (`ring`), sparklines (`spark`), and badges;
-  - One-click data export (Copy Markdown / CSV) and instant client-side text filtering (`filter`).
+  - One-click data export (Copy Markdown / CSV) and instant client-side text filtering (`filter`);
+  - **Automatic pagination** (fork.2): tables beyond 15 rows paginate locally with a quiet pager; `pageSize` overrides the page size, while totals and export always cover the full data set.
 - **ECharts Integration (`echart`)**:
   - **Preset Mode**: Shorthand presets (`bar`, `line`, `area`, `pie`, `scatter`, `radar`, `gauge`, `funnel`, `treemap`, `sankey`, `graph`, `heatmap`, `bigline`, `wordCloud`) that adapt automatically to host light/dark themes;
   - **Full Option Mode**: Full native ECharts options for advanced features like DataZoom and VisualMap;
@@ -152,7 +156,7 @@ dsh-genui Capabilities
 - **Mathematical Function Plots (`plot`)**:
   - Multi-series plotting with expressions (trig, log, exp, power);
   - **Live Parameter Sliders**: Drag sliders to redraw curves instantly at 60 FPS; supports auto-animation loops.
-- **Mermaid & 3D Visuals**: Flowcharts, sequence diagrams, and lightweight 3D models with on-demand asset loading.
+- **Mermaid & 3D Visuals**: Flowcharts, sequence diagrams, gantt, ER, git graphs, mindmaps, and timelines (12 whitelisted kinds) through the **pele engine** (fork: −70% asset weight vs mermaid, themes re-flow live on host theme switches), plus lightweight 3D models with on-demand asset loading.
 - **Native Media**: Inline playback for accessible audio and video URLs, with poster images, aspect ratios, and controls.
 - **KaTeX Math Rendering**: Inline math (`$...$`) and display blocks (`$$...$$`), supporting matrices and multi-line equations.
 

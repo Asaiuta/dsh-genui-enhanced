@@ -10,6 +10,7 @@
    - 资产体积 3.44 MB → 1.02 MB（-70%）；同步渲染，fence-feedback 错误路径无异步竞态。
 2. **主题桥接**：pele 读 CSS 变量，SVG 根元素内联 `--pele-*` → `--dsw-alias-*` 的活 `var()` 映射（颜色随宿主换主题实时重排，mermaid-core 是 initialize 时冻结调色板）；字体/圆角按 mermaid-core 同样理由冻结（测量一致性）。fallback 值与 mermaid-core 相同。
 3. **白名单扩容**：`mindmap`、`timeline` 进入白名单（mermaid-core 曾排除，pele 支持良好）。白名单共 12 种：flowchart/graph/sequenceDiagram/classDiagram/stateDiagram/gantt/pie/erDiagram/journey/gitGraph/mindmap/timeline。
+4. **fork.2 能力增强**（0.14.0-fork.2，条目见 CHANGELOG）：`chart` 加 `area` kind（多序列常驻填充的面积趋势）；`input` 加 `date`/`datetime-local`/`time`/`number` 原生类型与 `min`/`max`/`step` 约束；`table` 加自动分页（>15 行本地翻页，`pageSize` 可覆盖，分组表豁免）并把 `maxTableRows` 提到 200；文档漂移修正（pele-core 注释、SKILL mermaid/diagram 条目）；新增 `tests/` 回归测试（vitest，`pnpm exec vitest run`）。
 
 ## 已知限制（pele 本体，与上游无关）
 
@@ -32,6 +33,7 @@ SKILL.md 末尾三条（禁翻文件系统 / 紧凑 chart 组件优先 / 修改�
 
 ## 未做（Tier 2 剩余，按需立项）
 
+- echart 地图 preset（choropleth）：需打包 GeoJSON 按需资产 + full 包暴露 registerMap；数据源（世界地图 GeoJSON 选型、区域名中英匹配）已评估，按需立项
 - chart_export（echarts SSR 出 SVG）≈250 tok
 - 治理移植（闭合列表校验等）
 - 上游 PR：pele 可选替换若被作者收编，可放弃 fork 回市场版

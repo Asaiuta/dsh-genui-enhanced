@@ -23,9 +23,13 @@ export const GENUI_LIMITS = {
   maxListItems: 50,
   /** Maximum `select`/`radio` options. */
   maxOptions: 50,
-  /** Maximum `table` rows / columns. */
-  maxTableRows: 50,
+  /** Maximum `table` rows / columns. Rows paginate at the renderer, so the
+   *  cap can stay above the auto-pagination threshold. */
+  maxTableRows: 200,
   maxTableCols: 12,
+  /** fork.2: rows per page when a table paginates (overridable via
+   *  `table.pageSize`). */
+  defaultTablePageSize: 15,
   /** Maximum `chart` data points per series. */
   maxChartPoints: 60,
   /** Maximum `plot` series and per-series parameters. */

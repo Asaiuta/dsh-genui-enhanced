@@ -12,9 +12,9 @@
  * initialize time) — and pele renders synchronously, which keeps the
  * fence-feedback error path free of async render races.
  *
- * The kind whitelist is unchanged from mermaid-core; pele covers every kind
- * on it, including gitGraph. mindmap/timeline stay excluded exactly as
- * mermaid-core left them.
+ * Kind whitelist: mermaid-core's list widened by the fork — pele renders
+ * `mindmap` and `timeline` well (mermaid-core excluded them), so the gate
+ * admits both. 12 kinds total, including gitGraph.
  * @module @changfenhuang/dsh-genui/client/pele-core
  */
 import { register, render as peleRender } from 'pele'

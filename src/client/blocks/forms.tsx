@@ -441,6 +441,9 @@ export function InputNode({ node, onAction, answers }: {
         } : undefined}
         placeholder={node.placeholder}
         value={value}
+        min={node.min}
+        max={node.max}
+        step={node.step}
         onChange={e => {
           const v = e.currentTarget.value
           setValue(v)

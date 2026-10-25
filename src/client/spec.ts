@@ -124,7 +124,14 @@ export interface GenuiInput {
   label?: string
   placeholder?: string
   value?: string
-  inputType?: 'text' | 'email' | 'password' | 'color'
+  /** fork.2: `date` / `datetime-local` / `time` / `number` map to the native
+   *  browser controls (no JS picker is shipped). */
+  inputType?: 'text' | 'email' | 'password' | 'color' | 'date' | 'datetime-local' | 'time' | 'number'
+  /** fork.2: native constraint attributes — numeric for `inputType: 'number'`,
+   *  date strings (`YYYY-MM-DD` etc.) for the date types. */
+  min?: number | string
+  max?: number | string
+  step?: number
   /** v2: when set, interaction sends this action back to the model. */
   action?: string
   /**
@@ -427,6 +434,12 @@ export interface GenuiTable {
   filterColumn?: number
   /** Field id of a select whose value is a column header: sorts by it locally. */
   sortField?: string
+  /** fork.2: rows per page. Rows beyond `defaultTablePageSize` (15) paginate
+   *  automatically; this overrides the page size. Totals, export and the
+   *  filtered-rows note always cover the full data set. Grouped tables
+   *  (`types[0] === 'group'`) are exempt — a group header must not be torn
+   *  from its children across pages. */
+  pageSize?: number
 }
 
 /** How a table column's cells render.
@@ -444,10 +457,12 @@ export interface GenuiChartDatum {
 
 export interface GenuiChart {
   type: 'chart'
-  /** Chart shape: bars (default), line (trend), donut (share). */
-  kind?: 'bars' | 'line' | 'donut'
+  /** Chart shape: bars (default), line (trend), area (filled trend — multi-
+   *  series areas stay filled, unlike line which washes single series only),
+   *  donut (share). */
+  kind?: 'bars' | 'line' | 'area' | 'donut'
   data: GenuiChartDatum[]
-  /** Multi-series: grouped bars, or one line per entry when kind is line. */
+  /** Multi-series: grouped bars, or one line/area per entry when kind is line/area. */
   series?: Array<{ label: string; color?: string; data: GenuiChartDatum[] }>
   /** Bars only: horizontal bars (rankings, long category labels). */
   horizontal?: boolean

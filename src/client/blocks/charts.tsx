@@ -10,7 +10,7 @@
  * true zero line so negative values are drawn, not clamped away.
  * @module @changfenhuang/dsh-genui/client/blocks/charts
  */
-import { Fragment, memo, useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, memo, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { MouseEvent as ReactMouseEvent, ReactNode, RefObject } from 'react'
 import { writeClipboard } from '../primitive-adapter.ts'
 import { renderInline } from '../inline.ts'
@@ -21,6 +21,7 @@ import css from '../GenuiBlock.module.css'
 import { GENUI_LIMITS } from '../genui-runtime/index.ts'
 import type { GenuiChart, GenuiTable } from '../spec.ts'
 import { isTableGroupHeaderRow, tableRowsForDetails } from '../table-details.ts'
+import { tablePageWindow } from '../table-pagination.ts'
 
 export const CHART_COLORS = [
   'var(--dsw-static-deepseek-400)',
@@ -240,6 +241,14 @@ export const TableNode = memo(function TableNode({ node, renderDetail, filterVal
   const [sort, setSort] = useState<{ col: number; dir: 1 | -1 } | null>(null)
   const [collapsed, setCollapsed] = useState<ReadonlySet<number>>(() => new Set())
   const [expanded, setExpanded] = useState<ReadonlySet<number>>(() => new Set())
+  // fork.2: current page (0-based), component-local like sort/collapse — a
+  // refresh restarts at page 1 by design. Reset when the bound filter (or the
+  // page size) changes so the reader never lands past the last page.
+  const [page, setPage] = useState(0)
+  const pageSize = Math.min(Math.max(node.pageSize ?? GENUI_LIMITS.defaultTablePageSize, 1), GENUI_LIMITS.maxTableRows)
+  useEffect(() => {
+    setPage(0)
+  }, [filterValue, pageSize])
 
   const compare = (a: GenuiTable['rows'][number], b: GenuiTable['rows'][number], col: number, dir: 1 | -1): number => {
     const an = parseSortableNumber(a[col])
@@ -271,11 +280,21 @@ export const TableNode = memo(function TableNode({ node, renderDetail, filterVal
   const visibleRows = filtered.map(entry => entry.row)
   const hiddenCount = rows.length - visibleRows.length
 
+  // fork.2: pagination slices the filtered entry list — but the displayed
+  // index column must stay global (1..N across pages), so visibleIndex is
+  // assigned before the slice. Totals, export and the hidden-count note above
+  // already run on the full filtered set. Grouped tables are exempt: slicing
+  // could strand a group header away from its children.
+  const paginated = types[0] !== 'group' && filtered.length > pageSize
+  const pageWin = paginated ? tablePageWindow(filtered.length, pageSize, page) : null
+  const indexedEntries = filtered.map((entry, visibleIndex) => ({ ...entry, visibleIndex }))
+  const pageEntries = pageWin !== null ? indexedEntries.slice(pageWin.start, pageWin.end) : indexedEntries
+
   interface Section { header: { row: GenuiTable['rows'][number]; index: number } | null; children: Array<{ row: GenuiTable['rows'][number]; index: number; visibleIndex: number }> }
   const sections: Section[] = []
   // Details and local state belong to the original row, not its filtered
   // position. Keep the latter separately for the displayed index column.
-  filtered.forEach(({ row, index }, visibleIndex) => {
+  pageEntries.forEach(({ row, index, visibleIndex }) => {
     if (isGroupRow(row)) { sections.push({ header: { row, index }, children: [] }); return }
     if (sections.length === 0 || sections[sections.length - 1]!.header === null) {
       if (sections.length === 0) sections.push({ header: null, children: [] })
@@ -484,6 +503,29 @@ export const TableNode = memo(function TableNode({ node, renderDetail, filterVal
           </tfoot>
         )}
       </table>
+      {pageWin !== null && (
+        <div className={css.tablePager}>
+          <button
+            type="button"
+            className={css.tablePagerBtn}
+            disabled={pageWin.current === 0}
+            onClick={() => setPage(pageWin.current - 1)}
+          >
+            {tr('block.table.prevPage')}
+          </button>
+          <span className={css.tablePagerInfo}>
+            {tr('block.table.pageInfo', { page: pageWin.current + 1, pages: pageWin.pages, count: filtered.length })}
+          </span>
+          <button
+            type="button"
+            className={css.tablePagerBtn}
+            disabled={pageWin.current >= pageWin.pages - 1}
+            onClick={() => setPage(pageWin.current + 1)}
+          >
+            {tr('block.table.nextPage')}
+          </button>
+        </div>
+      )}
     </div>
   )
 })
@@ -612,7 +654,8 @@ function YAxis({ ticks, lo, span }: { ticks: number[]; lo: number; span: number 
   )
 }
 
-/** Chart: bars (default), line (trend), or donut (share); multi-series bars via `series`. */
+/** Chart: bars (default), line (trend), area (filled trend), or donut (share);
+ *  multi-series bars via `series`. */
 export const ChartNode = memo(function ChartNode({ chart, filterValue }: {
   chart: GenuiChart
   /** Live value of the control bound via `chart.filter`; keeps matching
@@ -623,6 +666,9 @@ export const ChartNode = memo(function ChartNode({ chart, filterValue }: {
   const kind = filtered.kind ?? 'bars'
   if (kind === 'donut') return <DonutNode chart={filtered} />
   if (kind === 'line') return <LineChartNode chart={filtered} />
+  // fork.2: `area` is the filled variant of the line renderer — every series
+  // keeps its area wash (line only washes a single series).
+  if (kind === 'area') return <LineChartNode chart={filtered} filled />
   return <BarsNode chart={filtered} />
 })
 
@@ -851,8 +897,12 @@ export const BarsNode = memo(function BarsNode({ chart }: { chart: GenuiChart })
 })
 
 /** Line: responsive polyline with an area wash, nice y ticks and sampled x
- *  labels drawn in SVG at their real size. */
-export const LineChartNode = memo(function LineChartNode({ chart }: { chart: GenuiChart }) {
+ *  labels drawn in SVG at their real size. `filled` is the `area` kind: every
+ *  series keeps its wash (a plain line washes a single series only). */
+export const LineChartNode = memo(function LineChartNode({ chart, filled = false }: {
+  chart: GenuiChart
+  filled?: boolean
+}) {
   useT()
   const [ref, measured] = useMeasuredWidth()
   const { tip, show, hide } = useChartTip()
@@ -886,8 +936,13 @@ export const LineChartNode = memo(function LineChartNode({ chart }: { chart: Gen
   const y = (v: number): number => padT + (1 - (v - lo) / span) * innerH
   const paths = seriesValues.map(values =>
     values.map((v, i) => `${i === 0 ? 'M' : 'L'} ${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' '))
-  const area = !multi && pointCount > 1
-    ? `${paths[0]} L ${x(pointCount - 1).toFixed(1)} ${y(lo).toFixed(1)} L ${x(0).toFixed(1)} ${y(lo).toFixed(1)} Z`
+  // Area wash: a single-series line always washes (existing look); the `area`
+  // kind washes every series. Each series closes against its own last point —
+  // series lengths may differ.
+  const areas = pointCount > 1 && (!multi || filled)
+    ? seriesValues.map((values, si) => values.length > 1
+      ? `${paths[si]} L ${x(values.length - 1).toFixed(1)} ${y(lo).toFixed(1)} L ${x(0).toFixed(1)} ${y(lo).toFixed(1)} Z`
+      : null)
     : null
   // Keep x labels readable: at most one per ~64px of plot width.
   const labelStep = Math.max(1, Math.ceil(pointCount / Math.max(1, Math.floor(innerW / 64))))
@@ -897,14 +952,16 @@ export const LineChartNode = memo(function LineChartNode({ chart }: { chart: Gen
     max: formatTick(Math.max(...flat, 0)),
   })
   return (
-    <div className={css.lineChart} data-genui-chart="line" data-genui-line ref={ref} role="img" aria-label={summary} onMouseLeave={hide}>
+    <div className={css.lineChart} data-genui-chart={filled ? 'area' : 'line'} data-genui-line ref={ref} role="img" aria-label={summary} onMouseLeave={hide}>
       <ChartTip tip={tip} />
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
         <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--dsl-g-accent)" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="var(--dsl-g-accent)" stopOpacity="0.02" />
-          </linearGradient>
+          {areas !== null && areas.map((d, si) => d === null ? null : (
+            <linearGradient key={`g-${si}`} id={`${gradientId}-${si}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={multi ? colors[si] : 'var(--dsl-g-accent)'} stopOpacity="0.22" />
+              <stop offset="100%" stopColor={multi ? colors[si] : 'var(--dsl-g-accent)'} stopOpacity="0.02" />
+            </linearGradient>
+          ))}
         </defs>
         {ticks.map((t, i) => {
           const ty = y(t)
@@ -915,7 +972,7 @@ export const LineChartNode = memo(function LineChartNode({ chart }: { chart: Gen
             </g>
           )
         })}
-        {area !== null && <path d={area} fill={`url(#${gradientId})`} />}
+        {areas !== null && areas.map((d, si) => d === null ? null : <path key={`a-${si}`} d={d} fill={`url(#${gradientId}-${si})`} />)}
         {paths.map((d, si) => <path key={si} d={d} className={css.linePath} style={{ stroke: colors[si] }} />)}
         {seriesValues.map((values, si) => values.map((v, i) => {
           const rows: TipRow[] = multi

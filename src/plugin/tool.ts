@@ -180,7 +180,7 @@ function formatInlineContentWarnings(spec: GenuiSpec): string[] {
 
 /** Format chart-specific process errors while keeping other schema errors generic. */
 function formatProcessFailure(processed: GenuiProcessResult): string | undefined {
-  const chartErrors = processed.errors.filter(error => /(?:variant is unsupported|kind must be bars, line, or donut|requires data or series|(?:data|series) is required for|(?:\.data|\.series)(?:\[\d+\])?(?:\.(?:data|label|value|color))? must|series is only supported for bars)/.test(error))
+  const chartErrors = processed.errors.filter(error => /(?:variant is unsupported|kind must be bars, line, area, or donut|requires data or series|(?:data|series) is required for|(?:\.data|\.series)(?:\[\d+\])?(?:\.(?:data|label|value|color))? must|series is only supported for bars)/.test(error))
   return chartErrors.length === 0 ? undefined : validationProtocol([
     'status=invalid',
     'error=invalid_chart_fields',

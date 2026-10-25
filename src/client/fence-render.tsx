@@ -45,7 +45,7 @@ const FENCE_ERROR_STYLE: CSSProperties = {
 
 /** Format chart-specific process errors without maintaining a second validator. */
 function formatChartProcessErrors(errors: string[]): string | null {
-  const chartErrors = errors.filter(error => /(?:variant is unsupported|kind must be bars, line, or donut|requires data or series|(?:data|series) is required for|(?:\.data|\.series)(?:\[\d+\])?(?:\.(?:data|label|value|color))? must|series is only supported for bars)/.test(error))
+  const chartErrors = errors.filter(error => /(?:variant is unsupported|kind must be bars, line, area, or donut|requires data or series|(?:data|series) is required for|(?:\.data|\.series)(?:\[\d+\])?(?:\.(?:data|label|value|color))? must|series is only supported for bars)/.test(error))
   return chartErrors.length === 0 ? null : chartErrors.join('；')
 }
 

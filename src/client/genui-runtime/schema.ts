@@ -63,9 +63,10 @@ export const TEXT_SIZES = ['display', 'h1', 'h2', 'h3', 'body', 'muted', 'captio
 export const TEXT_ALIGNS = ['left', 'center', 'right'] as const
 export const BUTTON_TONES = ['primary', 'danger', 'success', 'ghost'] as const
 export const BADGE_TONES = ['success', 'warn', 'danger', 'accent'] as const
-export const INPUT_TYPES = ['text', 'email', 'password', 'color'] as const
+/** fork.2: date/datetime-local/time/number use the native browser controls. */
+export const INPUT_TYPES = ['text', 'email', 'password', 'color', 'date', 'datetime-local', 'time', 'number'] as const
 export const CALLOUT_TONES = ['info', 'success', 'warning', 'error'] as const
-export const CHART_KINDS = ['bars', 'line', 'donut'] as const
+export const CHART_KINDS = ['bars', 'line', 'area', 'donut'] as const
 export const PLOT_KINDS = ['line', 'area', 'scatter'] as const
 export const MEDIA_ASPECT_RATIOS = ['16:9', '4:3', '1:1', '9:16'] as const
 export const MESH_SHAPES = ['box', 'sphere', 'cone', 'cylinder', 'torus'] as const
@@ -340,7 +341,7 @@ export const COMPONENT_SCHEMAS: Readonly<Record<string, ComponentSchema>> = {
   blocks: schema(['rows'], { ...nodeFields, rows: 'array', columns: 'number', caption: 'string', title: 'string' }, { items: 'rows', data: 'rows' }, { nested: { rows: blocksRowSchema } }),
   icon: schema(['name'], { ...nodeFields, name: 'string', label: 'string', tone: 'string', size: 'number', tile: 'boolean' }, { icon: 'name' }, { enums: { tone: ICON_TONES } }),
   image: schema(['src'], { ...nodeFields, src: 'string', alt: 'string', caption: 'string' }, { url: 'src', link: 'src' }),
-  input: schema([], { ...nodeFields, label: 'string', placeholder: 'string', value: 'string', inputType: 'string', action: 'string', id: 'string' }, {}, { enums: { inputType: INPUT_TYPES } }),
+  input: schema([], { ...nodeFields, label: 'string', placeholder: 'string', value: 'string', inputType: 'string', min: 'unknown', max: 'unknown', step: 'number', action: 'string', id: 'string' }, {}, { enums: { inputType: INPUT_TYPES } }),
   json: schema(['value'], { ...nodeFields, value: 'unknown' }),
   keyvalue: schema(['pairs'], { ...nodeFields, pairs: 'array' }, { items: 'pairs', rows: 'pairs', entries: 'pairs' }, { nested: { pairs: keyValueRecordSchema } }),
   link: schema(['label'], { ...nodeFields, label: 'string', href: 'string' }),
@@ -373,7 +374,7 @@ export const COMPONENT_SCHEMAS: Readonly<Record<string, ComponentSchema>> = {
   steps: schema(['steps'], { ...nodeFields, steps: 'array', current: 'number' }, { items: 'steps' }, { nested: { steps: stepsRecordSchema } }),
   submit: schema(['label'], { ...nodeFields, label: 'string', action: 'string', resetAction: 'string', groups: 'array' }),
   switch: schema(['label'], { ...nodeFields, label: 'string', checked: 'boolean', action: 'string' }),
-  table: schema(['columns', 'rows'], { ...nodeFields, columns: 'array', rows: 'array', types: 'array', total: 'boolean', details: 'array', filter: 'string', filterColumn: 'number', sortField: 'string', export: 'boolean' }, { headers: 'columns', data: 'rows', items: 'rows' }),
+  table: schema(['columns', 'rows'], { ...nodeFields, columns: 'array', rows: 'array', types: 'array', total: 'boolean', details: 'array', filter: 'string', filterColumn: 'number', sortField: 'string', export: 'boolean', pageSize: 'number' }, { headers: 'columns', data: 'rows', items: 'rows' }),
   tabs: schema(['tabs'], { ...nodeFields, tabs: 'array' }, {}, { nested: { tabs: tabHolderSchema } }),
   text: schema(['content'], { ...nodeFields, content: 'string', size: 'string', center: 'boolean', align: 'string', tone: 'string', mono: 'boolean' }, { text: 'content' }, { enums: { size: TEXT_SIZES, align: TEXT_ALIGNS, tone: TEXT_TONES } }),
   textarea: schema([], { ...nodeFields, label: 'string', placeholder: 'string', rows: 'number', value: 'string', action: 'string', id: 'string' }),

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.14.0-fork.2] - 2026-10-25
+
+本 fork 的第一份条目。fork（pele 引擎替换与 SKILL 本机纪律收编）的既有 delta 见 `FORK.md`；自本轮起，fork 增强也在 CHANGELOG 记录，版本号以 `-fork.n` 递增。
+
+### 新增
+
+- `chart` 新增 `kind:"area"`：面积趋势图，多序列也常驻填充（`line` 仅单序列带淡渐变）；guard 语义校验、schema 枚举与两处错误消息正则同步放行。
+- `input` 的 `inputType` 新增 `date` / `datetime-local` / `time` / `number`（浏览器原生控件，无 JS 选择器），并支持原生约束字段 `min` / `max`（number 用数值、日期类用 `YYYY-MM-DD` 等原生格式）与 `step`。
+- `table` 新增分页：行数超过 15 自动分页（本地翻页，零往返），`pageSize` 可覆盖每页行数；合计、导出与「筛选后 N 行」提示始终按全量数据计算；分组表（`types[0]:"group"`）豁免分页，避免组头与子行跨页撕裂。
+- 新增 `tests/` 回归测试（vitest，此前 fork 无任何测试）：覆盖 area 枚举放行与降级、input 新类型与约束修复、table `pageSize` 钳制、分页窗口数学与 200 行新上限。
+
+### 变更
+
+- `GENUI_LIMITS.maxTableRows` 50 → 200：分页接管长表展示后，数据层截断不再是长表的瓶颈（repair 与渲染共用同一常量，自动跟随）。
+- `SKILL.md` mermaid 条目补齐白名单实际覆盖的 12 种图型（补 gitGraph/mindmap/timeline）；`diagram` 条目澄清：27 种 kind 中仅 7 种坐标类有编辑级精排，其余规则类均渲染为通用盒子网格布局（venn/radar/pyramid 等不画专属形状），形状类需求导向 `echart` preset。
+- `pele-core.ts` 顶部注释修正：白名单是 mermaid-core 之上扩容 mindmap/timeline，与实际代码一致。
+
+### 兼容性
+
+- 旧规格不受影响：`area` / 新 `inputType` / `pageSize` 均为可选新增；此前写出这些值的围栏会被 repair 静默降级，现在起按新语义渲染。
+- 独立运行时（standalone）与宿主资产管线无改动，无需重新注入资产。
+
 ## [0.14.0] - 2026-10-21
 
 ### 新增

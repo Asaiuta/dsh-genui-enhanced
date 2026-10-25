@@ -386,12 +386,23 @@ function repairNodeFields(value: unknown, ctx: RepairCtx, depth: number): GenuiN
       }
     }
     case 'input': {
+      // fork.2: native constraint attributes. `min`/`max` accept a finite
+      // number (number inputs) or a short string (date types: `YYYY-MM-DD`
+      // etc.); anything else is dropped and the native control ignores it.
+      const range = (value: unknown): number | string | undefined => {
+        if (typeof value === 'number' && Number.isFinite(value)) return value
+        if (typeof value === 'string' && value.trim() !== '') return value.trim().slice(0, 32)
+        return undefined
+      }
       return {
         type: 'input',
         ...opt('label', str(v.label, GENUI_LIMITS.maxString)),
         ...opt('placeholder', str(v.placeholder, GENUI_LIMITS.maxString)),
         ...opt('value', str(v.value, GENUI_LIMITS.maxString)),
         ...opt('inputType', enu(v.inputType, INPUT_TYPES)),
+        ...opt('min', range(v.min)),
+        ...opt('max', range(v.max)),
+        ...opt('step', num(v.step, 1e-9, 1e6)),
         ...opt('action', str(v.action, 200)),
         ...opt('id', str(v.id, 200)),
       }
@@ -539,6 +550,7 @@ function repairNodeFields(value: unknown, ctx: RepairCtx, depth: number): GenuiN
         ...opt('filter', str(v.filter, 64)),
         ...opt('filterColumn', int(v.filterColumn, 0, GENUI_LIMITS.maxTableCols - 1)),
         ...opt('sortField', str(v.sortField, 64)),
+        ...opt('pageSize', int(v.pageSize, 1, GENUI_LIMITS.maxTableRows)),
         ...opt('details', details !== undefined && details.some(d => d !== null) ? details : undefined),
       }
     }
@@ -1808,7 +1820,7 @@ function validateChartNode(v: Record<string, unknown>, at: string, errors: strin
   if (v.kind !== undefined
     && (typeof v.kind !== 'string'
       || !CHART_KINDS.includes(v.kind as typeof CHART_KINDS[number]))) {
-    errors.push(`${at}.kind must be bars, line, or donut`)
+    errors.push(`${at}.kind must be bars, line, area, or donut`)
   }
   const kind = v.kind === undefined ? 'bars' : v.kind
   const series = Array.isArray(v.series) ? v.series : undefined
@@ -1819,9 +1831,9 @@ function validateChartNode(v: Record<string, unknown>, at: string, errors: strin
   }
   if (series !== undefined) {
     if (series.length === 0) errors.push(`${at}.series must not be empty`)
-    // A line chart accepts `series` (one line per entry); the donut is a
+    // A line/area chart accepts `series` (one line per entry); the donut is a
     // share-of-total shape and stays single-series.
-    if (kind === 'donut') errors.push(`${at}.series is only supported for bars and line`)
+    if (kind === 'donut') errors.push(`${at}.series is only supported for bars, line, and area`)
     for (let index = 0; index < series.length; index++) {
       const entry = obj(series[index])
       if (entry !== undefined && Array.isArray(entry.data) && entry.data.length === 0) {
@@ -1832,8 +1844,8 @@ function validateChartNode(v: Record<string, unknown>, at: string, errors: strin
   if (kind === 'donut' && v.data === undefined) {
     errors.push(`${at}.data is required for donut`)
   }
-  if (kind === 'line' && v.data === undefined && (series === undefined || series.length === 0)) {
-    errors.push(`${at}.data is required for line (or provide series)`)
+  if ((kind === 'line' || kind === 'area') && v.data === undefined && (series === undefined || series.length === 0)) {
+    errors.push(`${at}.data is required for line/area (or provide series)`)
   }
   validateChartData(v.data, `${at}.data`, errors)
   validateChartSeries(v.series, `${at}.series`, errors)
