@@ -1,4 +1,6 @@
 allowBuilds:
-  esbuild: set this to true or false
+  # 之前是模板占位符（"set this to true or false"），任何全新 clone 装依赖都会被
+  # ERR_PNPM_IGNORED_BUILDS 拦住，因为 esbuild 的构建脚本没被允许执行。
+  esbuild: true
 minimumReleaseAgeExclude:
   - pele@1.10.0
