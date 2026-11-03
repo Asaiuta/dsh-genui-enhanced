@@ -19,4 +19,7 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run check
+      # `check` 里引用了 scripts/clean.mjs 与 scripts/check-standalone.mjs，
+      # 但这两个文件并没有进仓库（本地也不存在），全新 clone 跑不起来。
+      # 先只跑测试；等脚本补进仓库再把这里换成 `pnpm run check`。
+      - run: pnpm test
